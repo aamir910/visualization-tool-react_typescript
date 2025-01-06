@@ -4,7 +4,7 @@ import { UploadOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import { parseCSVFile } from "./parseFile";
 import { useDispatch } from "react-redux";
-import "./css_files/UploadPage.css"; // Import the custom CSS file
+import "./styles/UploadPage.css"; // Import the custom CSS file
 
 const { Title, Paragraph } = Typography;
 
