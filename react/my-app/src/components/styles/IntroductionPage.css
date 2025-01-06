@@ -1,0 +1,56 @@
+.introduction-container {
+    font-family: Arial, sans-serif;
+    /* background: linear-gradient(to bottom, #f0f8ff, #e6e6fa); */
+    padding: 20px;
+    text-align: center;
+    min-height: 100vh;
+  }
+  
+  .main-title {
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin-bottom: 20px;
+    color: #333;
+  }
+  
+  .carousel-container {
+    margin: 20px auto;
+    max-width: 80%;
+  }
+  
+  .carousel-slide {
+    height: 150px;
+    line-height: 150px;
+    background: #e9dcdc;
+    color: #4e86d9;
+    font-size: 1.5rem;
+    font-weight: bold;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
+  
+  .description {
+    font-size: 1.2rem;
+    margin: 20px auto;
+    max-width: 70%;
+    color: #555;
+    line-height: 1.6;
+  }
+  
+  .navigate-button {
+    margin-top: 20px;
+    padding: 10px 20px;
+    font-size: 1rem;
+    font-weight: bold;
+    color: #fff;
+    background: #e9dcdc;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+  }
+  
+  .navigate-button:hover {
+    background: #0056b3;
+  }
+  

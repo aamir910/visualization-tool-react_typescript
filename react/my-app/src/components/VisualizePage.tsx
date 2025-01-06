@@ -138,7 +138,7 @@ const VisualizePage: React.FC = () => {
           {/* Legend Section */}
           <Col span={6}>
             <Card title="Legend" style={{ width: "100%" }}>
-              <h6>Nodes</h6>
+              <h4>Nodes</h4>
               <Space direction="vertical">
                 {Object.entries(nodeColors).map(([type, color]) => (
                   <div key={type} style={{ display: "flex", alignItems: "center" }}>
@@ -160,7 +160,7 @@ const VisualizePage: React.FC = () => {
                 ))}
               </Space>
 
-              <h6 style={{ marginTop: "20px" }}>Links</h6>
+              <h4 style={{ marginTop: "20px" }}>Links</h4>
               <Space direction="vertical">
                 {Object.entries(linkColors).map(([type, color]) => (
                   <div key={type} style={{ display: "flex", alignItems: "center" }}>
@@ -186,7 +186,7 @@ const VisualizePage: React.FC = () => {
 
           {/* Graph Section */}
           <Col span={18}>
-          <Card title="Legend" style={{ width: "100%" }}>
+          <Card title="Graphs" style={{ width: "100%" }}>
 
             <div style={{ width: "100%", height: "500px" }}>
               <ForceGraph2D
