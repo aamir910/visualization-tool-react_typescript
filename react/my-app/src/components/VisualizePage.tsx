@@ -1,165 +1,211 @@
-import React, { useEffect, useState } from 'react';
-import { Button, message, Spin, Row, Col, Card, Input, Space } from 'antd';
-import { useNavigate } from 'react-router-dom';
-import { ForceGraph2D } from 'react-force-graph'; // Import the 2D force graph component
-import * as THREE from 'three'; // Import THREE.js
+import React, { useEffect, useState } from "react";
+import { Button, message, Spin, Row, Col, Card, Space } from "antd";
+import { useNavigate } from "react-router-dom";
+import { ForceGraph2D } from "react-force-graph";
+import { useSelector } from "react-redux";
+import { transformData } from "./parseFile"; // Import the transform function
+import { RootState } from "../store"; // Adjust path as per your project structure
 
 const VisualizePage: React.FC = () => {
   const [loading, setLoading] = useState(true);
-  const [nodeColorEntity1, setNodeColorEntity1] = useState('#ff7f0e'); // Color for EdgeType1 (default orange)
-  const [nodeColorEntity2, setNodeColorEntity2] = useState('#1f77b4'); // Color for EdgeType2 (default blue)
-  const [linkColor, setLinkColor] = useState('#999'); // Default link color
-  const navigate = useNavigate();  // Use useNavigate to navigate between pages
+  const [graphData, setGraphData] = useState({ nodes: [], links: [] });
+  const [nodeColors, setNodeColors] = useState<Record<string, string>>({});
+  const [linkColors, setLinkColors] = useState<Record<string, string>>({});
+  const navigate = useNavigate();
 
-  // Dummy data for nodes and links
-  const nodes = [
-    { id: '1', entity: 'Entity 1', group: 'EdgeType1' },
-    { id: '2', entity: 'Entity 2', group: 'EdgeType2' },
-    { id: '3', entity: 'Entity 3', group: 'EdgeType1' },
-    { id: '4', entity: 'Entity 4', group: 'EdgeType2' },
-  ];
+  const data = useSelector((state: RootState) => state.data.data); // Redux state for raw data
 
-  const links = [
-    { source: '1', target: '2', edgeType: 'EdgeType1' },
-    { source: '2', target: '3', edgeType: 'EdgeType2' },
-    { source: '3', target: '4', edgeType: 'EdgeType1' },
-  ];
-
-  // Simulate fetching visualization data (replace with actual data fetching logic)
   useEffect(() => {
+    if (data) {
+      const transformed = transformData(data); // Use transform function
+      const uniqueNodeTypes = Array.from(
+        new Set(transformed.nodes.map((node) => node.type))
+      );
+      const uniqueLinkTypes = Array.from(
+        new Set(transformed.links.map((link) => link.type))
+      );
+
+      // Assign default colors to unique node and link types
+      const initialNodeColors: Record<string, string> = {};
+      uniqueNodeTypes.forEach((type, index) => {
+        initialNodeColors[type] = `hsl(${(index * 60) % 360}, 70%, 50%)`;
+      });
+
+      const initialLinkColors: Record<string, string> = {};
+      uniqueLinkTypes.forEach((type, index) => {
+        initialLinkColors[type] = `hsl(${(index * 60 + 180) % 360}, 70%, 50%)`;
+      });
+
+      setNodeColors(initialNodeColors);
+      setLinkColors(initialLinkColors);
+      setGraphData(transformed); // Update graph data
+    }
     setTimeout(() => {
       setLoading(false);
-      message.success('Data visualization loaded');
-    }, 3000);  // Simulate delay for data loading
-  }, []);
+      message.success("Data visualization loaded");
+    }, 500);
+  }, [data]);
 
-  const handleGoBack = () => {
-    navigate('/upload');  // Use navigate to go back to the upload page
+  const handleColorChange = (type: string, newColor: string, isNode: boolean) => {
+    if (isNode) {
+      setNodeColors({ ...nodeColors, [type]: newColor });
+    } else {
+      setLinkColors({ ...linkColors, [type]: newColor });
+    }
   };
 
-  // Custom node drawing function to render the shapes (triangle for EdgeType2, circle for EdgeType1)
   const drawNode = (node: any, ctx: any) => {
     const shapeSize = 8;
-    const color = node.group === 'EdgeType1' ? nodeColorEntity1 : nodeColorEntity2; // Get color based on group
-    ctx.beginPath();
+    const color = nodeColors[node.type] || "#999";
+  
     ctx.fillStyle = color;
-
-    if (node.group === "EdgeType2") {
-      // Draw triangle for 'EdgeType2'
-      ctx.moveTo(node.x, node.y - shapeSize);
-      ctx.lineTo(node.x - shapeSize, node.y + shapeSize);
-      ctx.lineTo(node.x + shapeSize, node.y + shapeSize);
+  
+    if (node.group === "entity_2_type") {
+      // Draw a triangle
+      ctx.beginPath();
+      ctx.moveTo(node.x, node.y - shapeSize); // Top vertex
+      ctx.lineTo(node.x - shapeSize, node.y + shapeSize); // Bottom left
+      ctx.lineTo(node.x + shapeSize, node.y + shapeSize); // Bottom right
       ctx.closePath();
-    } else if (node.group === "EdgeType1") {
-      // Draw circle for 'EdgeType1'
+      ctx.fill();
+    } else {
+      // Default shape: circle
+      ctx.beginPath();
       ctx.arc(node.x, node.y, shapeSize, 0, 2 * Math.PI, false);
+      ctx.fill();
     }
-
-    ctx.fill();
-
-    // Optional: Add node ID label next to each node
-    ctx.fillStyle = "black";
-    ctx.font = "10px Arial";
-    // ctx.fillText(node.id, node.x + shapeSize + 5, node.y);
   };
+  
 
-  // Render node shape for the legend
-  const renderLegendShape = (group: string, color: string) => {
-    const shapeSize = 10; // Size of the legend shape
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
+  const renderLegendShape = (
+    type: string,
+    color: string,
+    isNode: boolean = true
+  ) => {
+    console.log(type , "here is the type there ")
+    const shapeSize = 10; // Adjust size as needed
+    const canvas = document.createElement("canvas");
+    canvas.width = shapeSize * 2;
+    canvas.height = shapeSize * 2;
+    const ctx = canvas.getContext("2d");
+  
     if (ctx) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.fillStyle = color;
-      if (group === 'EdgeType2') {
-        // Draw triangle for EdgeType2
+  
+      if (type === "entity_2_type" && isNode) {
+        // Draw a triangle for entity_1_type
         ctx.beginPath();
-        ctx.moveTo(shapeSize, 0);
-        ctx.lineTo(0, shapeSize * 2);
-        ctx.lineTo(shapeSize * 2, shapeSize * 2);
+        ctx.moveTo(shapeSize, 0); // Top vertex
+        ctx.lineTo(0, shapeSize * 2); // Bottom left
+        ctx.lineTo(shapeSize * 2, shapeSize * 2); // Bottom right
         ctx.closePath();
         ctx.fill();
-      } else if (group === 'EdgeType1') {
-        // Draw circle for EdgeType1
+      } else if (isNode) {
+        // Draw a circle for other node types
         ctx.beginPath();
-        ctx.arc(shapeSize, shapeSize, shapeSize, 0, 2 * Math.PI, false);
+        ctx.arc(shapeSize, shapeSize, shapeSize / 2, 0, 2 * Math.PI, false);
         ctx.fill();
+      } else {
+        // Draw a line for links
+        ctx.beginPath();
+        ctx.moveTo(0, shapeSize);
+        ctx.lineTo(shapeSize * 2, shapeSize);
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 3;
+        ctx.stroke();
       }
     }
-    return canvas.toDataURL(); // Return the shape as an image
+    return canvas.toDataURL();
+  };
+  
+
+  const handleGoBack = () => {
+    navigate("/upload");
   };
 
   return (
-    <div style={{ padding: '20px' }}>
+    <div style={{ padding: "20px" }}>
+        <br />
+      <Button type="default" onClick={handleGoBack}>
+        Go Back to Upload
+      </Button>
       <h1>Visualize Data</h1>
       {loading ? (
-        <Spin size="large" />  // Show loading spinner while fetching data
+        <Spin size="large" />
       ) : (
         <Row gutter={24}>
-          {/* Left Legend Column */}
+          {/* Legend Section */}
           <Col span={6}>
-            <Card title="Entity Types" style={{ width: '100%' }}>
+            <Card title="Legend" style={{ width: "100%" }}>
+              <h6>Nodes</h6>
               <Space direction="vertical">
-                <div>
-                  <span>EdgeType1 Color: </span>
-                  <Input
-                    type="color"
-                    value={nodeColorEntity1}
-                    onChange={(e) => setNodeColorEntity1(e.target.value)}
-                  />
-                </div>
-                <div>
-                  <span>EdgeType2 Color: </span>
-                  <Input
-                    type="color"
-                    value={nodeColorEntity2}
-                    onChange={(e) => setNodeColorEntity2(e.target.value)}
-                  />
-                </div>
-                <div>
-                  <span>Link Color: </span>
-                  <Input
-                    type="color"
-                    value={linkColor}
-                    onChange={(e) => setLinkColor(e.target.value)}
-                  />
-                </div>
-                {/* Legend Shapes */}
-                <div>
-                  <div>
-                    <img src={renderLegendShape('EdgeType1', nodeColorEntity1)} alt="EdgeType1" />
-                    <span> EdgeType1 (Circle)</span>
+                {Object.entries(nodeColors).map(([type, color]) => (
+                  <div key={type} style={{ display: "flex", alignItems: "center" }}>
+                    <img
+                      src={renderLegendShape(type, color, true)}
+                      alt={type}
+                      style={{ cursor: "pointer", marginRight: "10px" }}
+                      onClick={() => {
+                        const input = document.createElement("input");
+                        input.type = "color";
+                        input.value = color;
+                        input.oninput = (e) =>
+                          handleColorChange(type, e.currentTarget.value, true);
+                        input.click();
+                      }}
+                    />
+                    <span>{type}</span>
                   </div>
-                  <div>
-                    <img src={renderLegendShape('EdgeType2', nodeColorEntity2)} alt="EdgeType2" />
-                    <span> EdgeType2 (Triangle)</span>
+                ))}
+              </Space>
+
+              <h6 style={{ marginTop: "20px" }}>Links</h6>
+              <Space direction="vertical">
+                {Object.entries(linkColors).map(([type, color]) => (
+                  <div key={type} style={{ display: "flex", alignItems: "center" }}>
+                    <img
+                      src={renderLegendShape(type, color, false)}
+                      alt={type}
+                      style={{ cursor: "pointer", marginRight: "10px" }}
+                      onClick={() => {
+                        const input = document.createElement("input");
+                        input.type = "color";
+                        input.value = color;
+                        input.oninput = (e) =>
+                          handleColorChange(type, e.currentTarget.value, false);
+                        input.click();
+                      }}
+                    />
+                    <span>{type}</span>
                   </div>
-                </div>
+                ))}
               </Space>
             </Card>
           </Col>
 
-          {/* Force Graph in the middle */}
-          <Col span={12}>
-            <div style={{ width: '100%', height: '500px' }}>
+          {/* Graph Section */}
+          <Col span={18}>
+          <Card title="Legend" style={{ width: "100%" }}>
+
+            <div style={{ width: "100%", height: "500px" }}>
               <ForceGraph2D
-                graphData={{ nodes, links }}
+                graphData={graphData}
                 nodeLabel="entity"
-                linkLabel="edgeType"
-                nodeAutoColorBy="group"
-                linkColor={linkColor}
-                nodeCanvasObject={drawNode} // Use the custom drawNode function for rendering nodes
-                width={800}
+                linkLabel="type"
+                nodeAutoColorBy="type"
+                nodeCanvasObject={drawNode}
+                linkColor={(link: any) => linkColors[link.type] || "#999"}
+                width={1000}
                 height={500}
               />
             </div>
+          </Card>
           </Col>
         </Row>
       )}
 
-      <br />
-      <Button type="default" onClick={handleGoBack}>
-        Go Back to Upload
-      </Button>
+    
     </div>
   );
 };

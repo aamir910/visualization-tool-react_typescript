@@ -1,72 +1,66 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Button, Upload, message, Spin, Table } from 'antd';
-import { UploadOutlined } from '@ant-design/icons';
-import { useNavigate } from 'react-router-dom';
-import Papa from 'papaparse';
+import React, { useState, useEffect, useRef } from "react";
+import { Button, Upload, message, Spin, Table, Typography } from "antd";
+import { UploadOutlined } from "@ant-design/icons";
+import { useNavigate } from "react-router-dom";
+import { parseCSVFile } from "./parseFile";
+import { useDispatch } from "react-redux";
+import "./css_files/UploadPage.css"; // Import the custom CSS file
+
+const { Title, Paragraph } = Typography;
+
+interface DataRow {
+  [key: string]: string | number | undefined;
+  key: number;
+}
 
 const UploadPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [fileList, setFileList] = useState<any[]>([]);
-  const [tableData, setTableData] = useState<any[]>([]);
+  const [tableData, setTableData] = useState<DataRow[]>([]);
   const [columns, setColumns] = useState<any[]>([]);
-  const [fileParsed, setFileParsed] = useState(false); // Track if the file has been parsed
+  const [fileParsed, setFileParsed] = useState(false);
   const navigate = useNavigate();
 
-  const REQUIRED_COLUMNS = ['entity_1', 'entity_2', 'edge_type'];
-  const lastUploadedFile = useRef<any>(null); // Track the last uploaded file
+  const dispatch = useDispatch();
+  const REQUIRED_COLUMNS: string[] = ["entity_1", "entity_2", "edge_type"];
+  const lastUploadedFile = useRef<File | null>(null);
 
-  const beforeFileUpload = (file: any) => {
-    const isCsv = file.type === 'text/csv';
-    if (!isCsv) {
-      message.error('Only CSV files are allowed');
+  const beforeFileUpload = (file: File): boolean | Upload.LIST_IGNORE => {
+    const isCsv = file.type === "text/csv";
+    const isExcel =
+      file.type === "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ||
+      file.type === "application/vnd.ms-excel";
+
+    if (!isCsv && !isExcel) {
+      message.error("Only CSV and Excel files are allowed");
     }
-    return isCsv || Upload.LIST_IGNORE;
+
+    return isCsv || isExcel || Upload.LIST_IGNORE;
   };
 
-  const handleFileChange = (info: any) => {
+  const handleFileChange = (info: any): void => {
     setFileList(info.fileList);
-    
+
     if (info.fileList.length === 0) {
-      setTableData([]); // Clear table data
-      setFileParsed(false); // Reset the parsing state
+      setTableData([]);
+      setFileParsed(false);
     }
   };
 
   useEffect(() => {
     if (fileList.length === 0 || fileParsed) return;
 
-    const file = fileList[fileList.length - 1].originFileObj;
+    const file = fileList[fileList.length - 1]?.originFileObj as File;
 
     if (file && file !== lastUploadedFile.current) {
       lastUploadedFile.current = file;
       setLoading(true);
 
-      Papa.parse(file, {
-        header: true,
-        skipEmptyLines: true,
-        complete: (result) => {
-          console.log('Parsed Data:', result.data);
-          const data = result.data;
-
-          if (!data || data.length === 0) {
-            message.error('Parsed data is empty or invalid');
-            setLoading(false);
-            return;
-          }
-
+      parseCSVFile<DataRow>(
+        file,
+        REQUIRED_COLUMNS,
+        (data) => {
           const headers = Object.keys(data[0]);
-          const missingColumns = REQUIRED_COLUMNS.filter(
-            (col) => !headers.includes(col)
-          );
-
-          if (missingColumns.length > 0) {
-            message.error(
-              `Missing required columns: ${missingColumns.join(', ')}. Please follow the pattern.`
-            );
-            setLoading(false);
-            return;
-          }
-
           const generatedColumns = headers.map((key) => ({
             title: key.charAt(0).toUpperCase() + key.slice(1),
             dataIndex: key,
@@ -74,66 +68,75 @@ const UploadPage: React.FC = () => {
           }));
 
           setColumns(generatedColumns);
-          setTableData(data.map((row, index) => ({
-            key: index,
-            ...row,
-          })));
+          setTableData(
+            data.map((row, index) => ({
+              key: index,
+              ...row,
+            }))
+          );
 
           setLoading(false);
-          setFileParsed(true); // Mark as parsed
-          message.success('File parsed successfully');
+          setFileParsed(true);
+          message.success("File parsed successfully");
         },
-        error: (err) => {
+        dispatch,
+        (error) => {
           setLoading(false);
-          message.error(`Error parsing file: ${err.message}`);
-        },
-      });
+          message.error(error);
+        }
+      );
     }
   }, [fileList, fileParsed]);
 
-  const handleUpload = async () => {
+  const handleUpload = (): void => {
     if (fileList.length === 0 || tableData.length === 0) {
-      message.error('Please upload and parse a file first');
+      message.error("Please upload and parse a file first");
       return;
     }
 
-    message.success('Navigating to visualization page');
-    navigate('/visualize', { state: { data: tableData } });
+    message.success("Navigating to visualization page");
+    navigate("/visualize", { state: { data: tableData } });
   };
 
   return (
-    <div style={{ padding: '20px' }}>
-      <h1>Upload and Preview Data</h1>
-      <Upload
-        beforeUpload={beforeFileUpload}
-        onChange={handleFileChange}
-        fileList={fileList}
-        onRemove={() => setTableData([])}
-      >
-        <Button icon={<UploadOutlined />}>Select File</Button>
-      </Upload>
+    <div className="upload-page">
+      <Title level={2} className="page-title">Upload and Preview Data</Title>
+      <Paragraph className="page-description">
+        Easily upload your CSV or Excel files, preview the data, and navigate to the visualization page.
+      </Paragraph>
 
-      <br />
-      <br />
+      <div className="upload-section">
+        <Upload
+          beforeUpload={beforeFileUpload}
+          onChange={handleFileChange}
+          fileList={fileList}
+          onRemove={() => setTableData([])}
+        >
+          <Button icon={<UploadOutlined />}>Select File</Button>
+        </Upload>
+      </div>
 
-      {loading ? (
-        <Spin size="large" />
-      ) : tableData.length > 0 ? (
-        <Table
-          dataSource={tableData}
-          columns={columns}
-          bordered
-          rowKey="key"
-          pagination={{ pageSize: 5 }}
-        />
-      ) : (
-        <p>No data to display. Upload and parse a file to preview data.</p>
-      )}
+      <div className="table-section">
+        {loading ? (
+          <Spin size="large" />
+        ) : tableData.length > 0 ? (
+          <Table
+            dataSource={tableData}
+            columns={columns}
+            bordered
+            rowKey="key"
+            pagination={{ pageSize: 5 }}
+            className="data-table"
+          />
+        ) : (
+          <Paragraph className="no-data">No data to display. Upload and parse a file to preview data.</Paragraph>
+        )}
+      </div>
 
       <Button
         type="primary"
         onClick={handleUpload}
-        style={{ marginTop: '20px' }}
+        className="upload-button"
         disabled={fileList.length === 0 || tableData.length === 0}
       >
         Upload and Visualize
