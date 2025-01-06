@@ -18,6 +18,7 @@ const App: React.FC = () => {
         <Route path="/upload" element={<UploadPage />} />
         <Route path="/visualize" element={<VisualizePage />} />
       </Routes>
+      
       </Layout>
     </Router>
     </Provider>

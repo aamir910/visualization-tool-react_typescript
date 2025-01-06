@@ -21,8 +21,8 @@
   .carousel-slide {
     height: 150px;
     line-height: 150px;
-    background: #e9dcdc;
-    color: #4e86d9;
+    background: #001529;
+    color: white;
     font-size: 1.5rem;
     font-weight: bold;
     border-radius: 10px;
@@ -43,7 +43,7 @@
     font-size: 1rem;
     font-weight: bold;
     color: #fff;
-    background: #e9dcdc;
+    background: #001529;
     border: none;
     border-radius: 5px;
     cursor: pointer;

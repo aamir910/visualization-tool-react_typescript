@@ -2,7 +2,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: #f7f0f0;
+  background-color: #001529;
   padding: 10px 20px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
@@ -21,7 +21,7 @@
 
 .navbar-links a {
   text-decoration: none;
-  color: #333;
+  color: #ffffff;
   font-size: 1rem;
   transition: color 0.3s;
 }
