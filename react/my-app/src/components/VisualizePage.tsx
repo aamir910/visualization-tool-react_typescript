@@ -1,31 +1,28 @@
 import React, { useEffect, useState } from "react";
-import { Button, message, Spin, Row, Col, Card, Space } from "antd";
+import { Button, Spin, Row, Col, Card } from "antd";
 import { useNavigate } from "react-router-dom";
 import { ForceGraph2D } from "react-force-graph";
 import { useSelector } from "react-redux";
-import { transformData } from "./parseFile"; // Import the transform function
-import { RootState } from "../store"; // Adjust path as per your project structure
+import { transformData } from "./parseFile";
+import { RootState } from "../store";
+import Legend from "./Legend"; // Import the Legend component
 
 const VisualizePage: React.FC = () => {
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [graphData, setGraphData] = useState({ nodes: [], links: [] });
   const [nodeColors, setNodeColors] = useState<Record<string, string>>({});
   const [linkColors, setLinkColors] = useState<Record<string, string>>({});
   const navigate = useNavigate();
-
-  const data = useSelector((state: RootState) => state.data.data); // Redux state for raw data
+  const data = useSelector((state: RootState) => state.data.CopyData);
 
   useEffect(() => {
     if (data) {
-      const transformed = transformData(data); // Use transform function
-      const uniqueNodeTypes = Array.from(
-        new Set(transformed.nodes.map((node) => node.type))
-      );
-      const uniqueLinkTypes = Array.from(
-        new Set(transformed.links.map((link) => link.type))
-      );
+      console.log(data)
+      
+      const transformed = transformData(data);
+      const uniqueNodeTypes = Array.from(new Set(transformed.nodes.map((node) => node.type)));
+      const uniqueLinkTypes = Array.from(new Set(transformed.links.map((link) => link.type)));
 
-      // Assign default colors to unique node and link types
       const initialNodeColors: Record<string, string> = {};
       uniqueNodeTypes.forEach((type, index) => {
         initialNodeColors[type] = `hsl(${(index * 60) % 360}, 70%, 50%)`;
@@ -38,12 +35,8 @@ const VisualizePage: React.FC = () => {
 
       setNodeColors(initialNodeColors);
       setLinkColors(initialLinkColors);
-      setGraphData(transformed); // Update graph data
+      setGraphData(transformed);
     }
-    setTimeout(() => {
-      setLoading(false);
-      message.success("Data visualization loaded");
-    }, 500);
   }, [data]);
 
   const handleColorChange = (type: string, newColor: string, isNode: boolean) => {
@@ -57,68 +50,22 @@ const VisualizePage: React.FC = () => {
   const drawNode = (node: any, ctx: any) => {
     const shapeSize = 8;
     const color = nodeColors[node.type] || "#999";
-  
+
     ctx.fillStyle = color;
-  
+
     if (node.group === "entity_2_type") {
-      // Draw a triangle
       ctx.beginPath();
-      ctx.moveTo(node.x, node.y - shapeSize); // Top vertex
-      ctx.lineTo(node.x - shapeSize, node.y + shapeSize); // Bottom left
-      ctx.lineTo(node.x + shapeSize, node.y + shapeSize); // Bottom right
+      ctx.moveTo(node.x, node.y - shapeSize);
+      ctx.lineTo(node.x - shapeSize, node.y + shapeSize);
+      ctx.lineTo(node.x + shapeSize, node.y + shapeSize);
       ctx.closePath();
       ctx.fill();
     } else {
-      // Default shape: circle
       ctx.beginPath();
       ctx.arc(node.x, node.y, shapeSize, 0, 2 * Math.PI, false);
       ctx.fill();
     }
   };
-  
-
-  const renderLegendShape = (
-    type: string,
-    color: string,
-    isNode: boolean = true
-  ) => {
-    console.log(type , "here is the type there ")
-    const shapeSize = 10; // Adjust size as needed
-    const canvas = document.createElement("canvas");
-    canvas.width = shapeSize * 2;
-    canvas.height = shapeSize * 2;
-    const ctx = canvas.getContext("2d");
-  
-    if (ctx) {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = color;
-  
-      if (type === "entity_2_type" && isNode) {
-        // Draw a triangle for entity_1_type
-        ctx.beginPath();
-        ctx.moveTo(shapeSize, 0); // Top vertex
-        ctx.lineTo(0, shapeSize * 2); // Bottom left
-        ctx.lineTo(shapeSize * 2, shapeSize * 2); // Bottom right
-        ctx.closePath();
-        ctx.fill();
-      } else if (isNode) {
-        // Draw a circle for other node types
-        ctx.beginPath();
-        ctx.arc(shapeSize, shapeSize, shapeSize / 2, 0, 2 * Math.PI, false);
-        ctx.fill();
-      } else {
-        // Draw a line for links
-        ctx.beginPath();
-        ctx.moveTo(0, shapeSize);
-        ctx.lineTo(shapeSize * 2, shapeSize);
-        ctx.strokeStyle = color;
-        ctx.lineWidth = 3;
-        ctx.stroke();
-      }
-    }
-    return canvas.toDataURL();
-  };
-  
 
   const handleGoBack = () => {
     navigate("/upload");
@@ -126,7 +73,7 @@ const VisualizePage: React.FC = () => {
 
   return (
     <div style={{ padding: "20px" }}>
-        <br />
+      <br />
       <Button type="default" onClick={handleGoBack}>
         Go Back to Upload
       </Button>
@@ -135,77 +82,31 @@ const VisualizePage: React.FC = () => {
         <Spin size="large" />
       ) : (
         <Row gutter={24}>
-          {/* Legend Section */}
           <Col span={6}>
-            <Card title="Legend" style={{ width: "100%" }}>
-              <h4>Nodes</h4>
-              <Space direction="vertical">
-                {Object.entries(nodeColors).map(([type, color]) => (
-                  <div key={type} style={{ display: "flex", alignItems: "center" }}>
-                    <img
-                      src={renderLegendShape(type, color, true)}
-                      alt={type}
-                      style={{ cursor: "pointer", marginRight: "10px" }}
-                      onClick={() => {
-                        const input = document.createElement("input");
-                        input.type = "color";
-                        input.value = color;
-                        input.oninput = (e) =>
-                          handleColorChange(type, e.currentTarget.value, true);
-                        input.click();
-                      }}
-                    />
-                    <span>{type}</span>
-                  </div>
-                ))}
-              </Space>
-
-              <h4 style={{ marginTop: "20px" }}>Links</h4>
-              <Space direction="vertical">
-                {Object.entries(linkColors).map(([type, color]) => (
-                  <div key={type} style={{ display: "flex", alignItems: "center" }}>
-                    <img
-                      src={renderLegendShape(type, color, false)}
-                      alt={type}
-                      style={{ cursor: "pointer", marginRight: "10px" }}
-                      onClick={() => {
-                        const input = document.createElement("input");
-                        input.type = "color";
-                        input.value = color;
-                        input.oninput = (e) =>
-                          handleColorChange(type, e.currentTarget.value, false);
-                        input.click();
-                      }}
-                    />
-                    <span>{type}</span>
-                  </div>
-                ))}
-              </Space>
-            </Card>
+            <Legend
+              nodeColors={nodeColors}
+              linkColors={linkColors}
+              onColorChange={handleColorChange}
+            />
           </Col>
-
-          {/* Graph Section */}
           <Col span={18}>
-          <Card title="Graphs" style={{ width: "100%" }}>
-
-            <div style={{ width: "100%", height: "500px" }}>
-              <ForceGraph2D
-                graphData={graphData}
-                nodeLabel="entity"
-                linkLabel="type"
-                nodeAutoColorBy="type"
-                nodeCanvasObject={drawNode}
-                linkColor={(link: any) => linkColors[link.type] || "#999"}
-                width={1000}
-                height={500}
-              />
-            </div>
-          </Card>
+            <Card title="Graphs" style={{ width: "100%" }}>
+              <div style={{ width: "100%", height: "500px" }}>
+                <ForceGraph2D
+                  graphData={graphData}
+                  nodeLabel="entity"
+                  linkLabel="type"
+                  nodeAutoColorBy="type"
+                  nodeCanvasObject={drawNode}
+                  linkColor={(link: any) => linkColors[link.type] || "#999"}
+                  width={1000}
+                  height={500}
+                />
+              </div>
+            </Card>
           </Col>
         </Row>
       )}
-
-    
     </div>
   );
 };

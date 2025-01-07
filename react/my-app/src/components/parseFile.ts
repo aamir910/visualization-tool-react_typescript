@@ -1,7 +1,7 @@
 import Papa from "papaparse";
 import * as XLSX from "xlsx";
 import { Dispatch } from "redux";
-import { setData, setError } from "../store/data/dataSlice"; // import the actions
+import { setData, setError , setUniqueNodes, setUniqueLinks } from "../store/data/dataSlice"; // import the actions
 
 interface ParseResult<T> {
   data: T[];
@@ -45,7 +45,24 @@ export const parseCSVFile = <T>(
           return;
         }
 
-        dispatch(setData(data)); // Dispatch valid data to Redux state
+        dispatch(setData(data));
+
+        const uniqueEntityTypes = [
+          ...new Set(data.flatMap(item => [item.entity_1_type, item.entity_2_type]))
+      ].reduce((acc, type) => ({ ...acc, [type]: true }), {});
+      
+      // Extract unique edge types and format them as key-value pairs
+      const uniqueEdgeTypes = [
+          ...new Set(data.map(item => item.edge_type))
+      ].reduce((acc, edgeType) => ({ ...acc, [edgeType]: true }), {});
+      
+      console.log("Nodes:", uniqueEntityTypes);
+      console.log("Edges:", uniqueEdgeTypes);
+    // Dispatch to Redux store
+    dispatch(setUniqueNodes(uniqueEntityTypes));
+    dispatch(setUniqueLinks(uniqueEdgeTypes));
+        
+        // Dispatch valid data to Redux state
         onSuccess(data);
       },
       error: (err) => {
@@ -85,6 +102,23 @@ export const parseCSVFile = <T>(
         }
 
         dispatch(setData(jsonData)); // Dispatch valid data to Redux state
+
+        const uniqueEntityTypes = [
+          ...new Set(jsonData.flatMap(item => [item.entity_1_type, item.entity_2_type]))
+      ].reduce((acc, type) => ({ ...acc, [type]: true }), {});
+      
+      // Extract unique edge types and format them as key-value pairs
+      const uniqueEdgeTypes = [
+          ...new Set(jsonData.map(item => item.edge_type))
+      ].reduce((acc, edgeType) => ({ ...acc, [edgeType]: true }), {});
+      
+      console.log("Nodes:", uniqueEntityTypes);
+      console.log("Edges:", uniqueEdgeTypes);
+    // Dispatch to Redux store
+    dispatch(setUniqueNodes(uniqueEntityTypes));
+    dispatch(setUniqueLinks(uniqueEdgeTypes));
+
+
         onSuccess(jsonData);
       } catch (err: any) {
         const errorMessage = `Error parsing Excel file: ${err.message}`;

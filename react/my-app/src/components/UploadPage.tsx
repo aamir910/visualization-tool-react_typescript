@@ -4,6 +4,7 @@ import { UploadOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import { parseCSVFile } from "./parseFile";
 import { useDispatch } from "react-redux";
+
 import "./styles/UploadPage.css"; // Import the custom CSS file
 
 const { Title, Paragraph } = Typography;
@@ -56,37 +57,48 @@ const UploadPage: React.FC = () => {
       lastUploadedFile.current = file;
       setLoading(true);
 
-      parseCSVFile<DataRow>(
-        file,
-        REQUIRED_COLUMNS,
-        (data) => {
-          const headers = Object.keys(data[0]);
-          const generatedColumns = headers.map((key) => ({
-            title: key.charAt(0).toUpperCase() + key.slice(1),
-            dataIndex: key,
-            key,
-          }));
+      parseCSVFile<DataRow>(file, REQUIRED_COLUMNS, (data) => {
+        const headers = Object.keys(data[0]);
+        const generatedColumns = headers.map((key) => ({
+          title: key.charAt(0).toUpperCase() + key.slice(1),
+          dataIndex: key,
+          key,
+        }));
 
-          setColumns(generatedColumns);
-          setTableData(
-            data.map((row, index) => ({
-              key: index,
-              ...row,
-            }))
-          );
+        setColumns(generatedColumns);
+        setTableData(
+          data.map((row, index) => ({
+            key: index,
+            ...row,
+          }))
+        );
 
-          setLoading(false);
-          setFileParsed(true);
-          message.success("File parsed successfully");
-        },
-        dispatch,
-        (error) => {
-          setLoading(false);
-          message.error(error);
-        }
-      );
+        // Extract unique node and link types
+        const uniqueNodeTypes = new Set<string>();
+        const uniqueLinkTypes = new Set<string>();
+
+        data.forEach((row) => {
+          if (row.entity_1_type) uniqueNodeTypes.add(row.entity_1_type);
+          if (row.entity_2_type) uniqueNodeTypes.add(row.entity_2_type);
+          if (row.edge_type) uniqueLinkTypes.add(row.edge_type);
+        });
+
+        // Dispatch actions to update Redux state
+        dispatch(setData(data)); // Store the raw data
+        dispatch(updateSelectedTypes({
+          nodeTypes: Array.from(uniqueNodeTypes),
+          linkTypes: Array.from(uniqueLinkTypes),
+        }));
+
+        setLoading(false);
+        setFileParsed(true);
+        message.success("File parsed successfully");
+      }, dispatch, (error) => {
+        setLoading(false);
+        message.error(error);
+      });
     }
-  }, [fileList, fileParsed]);
+  }, [fileList, fileParsed, dispatch]);
 
   const handleUpload = (): void => {
     if (fileList.length === 0 || tableData.length === 0) {
