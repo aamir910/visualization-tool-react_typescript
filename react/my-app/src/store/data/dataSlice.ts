@@ -44,7 +44,7 @@ const dataSlice = createSlice({
       state.CopyData = state.data.filter(
         (row) =>
           action.payload[row.entity_1_type] !== false &&
-          action.payload[row.entity_2_type] !== false
+          action.payload[row.entity_2_type] !== false     
       );
     },
     setUniqueLinks: (state, action: PayloadAction<Record<string, boolean>>) => {
