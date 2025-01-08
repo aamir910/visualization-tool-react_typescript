@@ -24,9 +24,19 @@ const Legend: React.FC<LegendProps> = ({ nodeColors, linkColors, onColorChange }
 
   const handleCheckboxChange = (type: string, isNode: boolean) => {
     if (isNode) {
-      dispatch(setUniqueNodes({ ...UniqueNodes, [type]: !UniqueNodes[type] }));
+      dispatch(
+        setUniqueNodes({
+          ...UniqueNodes,
+          [type]: { ...UniqueNodes[type], value: !UniqueNodes[type].value }
+        })
+      );
     } else {
-      dispatch(setUniqueLinks({ ...UniqueLinks, [type]: !UniqueLinks[type] }));
+      dispatch(
+        setUniqueLinks({
+          ...UniqueLinks,
+          [type]: { ...UniqueLinks[type], value: !UniqueLinks[type].value }
+        })
+      );
     }
   };
 
@@ -42,33 +52,33 @@ const Legend: React.FC<LegendProps> = ({ nodeColors, linkColors, onColorChange }
     <Card title="Legend" style={{ width: "100%" }}>
       <h4>Nodes</h4>
       <Space direction="vertical">
-        {Object.entries(UniqueNodes).map(([type, visible]) => (
-          <div key={type} style={{ display: "flex", alignItems: "center" }}>
-            <Checkbox
-              checked={visible}
-              onChange={() => handleCheckboxChange(type, true)}
-            />
-            <img
-              src={renderLegendShape(type, nodeColors[type], true)}
-              alt={type}
-              style={{ cursor: "pointer", margin: "0 10px" }}
-              onClick={() => handleColorPicker(type, nodeColors[type], true)}
-            />
-            <span>{type}</span>
-          </div>
-        ))}
+      {Object.entries(UniqueNodes).map(([key, { type, value }]) => (
+  <div key={key} style={{ display: "flex", alignItems: "center" }}>
+    <Checkbox
+      checked={value}
+      onChange={() => handleCheckboxChange(key, true)}
+    />
+    <img
+      src={renderLegendShape(type, nodeColors[key], true)}
+      alt={key}
+      style={{ cursor: "pointer", margin: "0 10px" }}
+      onClick={() => handleColorPicker(key, nodeColors[key], true)}
+    />
+    <span>{key}</span>
+  </div>
+))}
       </Space>
 
       <h4 style={{ marginTop: "20px" }}>Links</h4>
       <Space direction="vertical">
-        {Object.entries(UniqueLinks).map(([type, visible]) => (
+        {Object.entries(UniqueLinks).map(([type, { name, value }]) => (
           <div key={type} style={{ display: "flex", alignItems: "center" }}>
             <Checkbox
-              checked={visible}
+              checked={value}
               onChange={() => handleCheckboxChange(type, false)}
             />
             <img
-              src={renderLegendShape(type, linkColors[type], false)}
+              src={renderLegendShape(name, linkColors[type], false)}
               alt={type}
               style={{ cursor: "pointer", margin: "0 10px" }}
               onClick={() => handleColorPicker(type, linkColors[type], false)}

@@ -103,20 +103,28 @@ export const parseCSVFile = <T>(
 
         dispatch(setData(jsonData)); // Dispatch valid data to Redux state
 
-        const uniqueEntityTypes = [
-          ...new Set(jsonData.flatMap(item => [item.entity_1_type, item.entity_2_type]))
-      ].reduce((acc, type) => ({ ...acc, [type]: true }), {});
+        const uniqueEntityTypes = jsonData.flatMap(item => [
+          { type: 'entity_1_type', value: item.entity_1_type },
+          { type: 'entity_2_type', value: item.entity_2_type }
+      ])
+      .reduce((acc, { type, value }) => {
+          acc[value] = { type, value: true }; // Dynamically set the type and value
+          return acc;
+      }, {});
       
-      // Extract unique edge types and format them as key-value pairs
-      const uniqueEdgeTypes = [
-          ...new Set(jsonData.map(item => item.edge_type))
-      ].reduce((acc, edgeType) => ({ ...acc, [edgeType]: true }), {});
+      const uniqueEdgeTypes = jsonData.reduce((acc, item) => {
+          const edgeType = item.edge_type;
+          acc[edgeType] = { type: "edge_type", value: true }; // Assign type and retain value
+          return acc;
+      }, {});
       
       console.log("Nodes:", uniqueEntityTypes);
       console.log("Edges:", uniqueEdgeTypes);
-    // Dispatch to Redux store
-    dispatch(setUniqueNodes(uniqueEntityTypes));
-    dispatch(setUniqueLinks(uniqueEdgeTypes));
+      
+      // Dispatch to Redux store
+      dispatch(setUniqueNodes(uniqueEntityTypes));
+      dispatch(setUniqueLinks(uniqueEdgeTypes));
+      
 
 
         onSuccess(jsonData);

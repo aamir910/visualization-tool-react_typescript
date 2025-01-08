@@ -7,13 +7,14 @@ interface DataRow {
   entity_1_type: string;
   entity_2_type: string;
   edge_type: string;
+  // Other properties can be added here
 }
 
 interface DataState {
   data: DataRow[];
   CopyData: DataRow[];
-  UniqueNodes: Record<string, boolean>;
-  UniqueLinks: Record<string, boolean>;
+  UniqueNodes: Record<string, { type: string; value: boolean }>;
+  UniqueLinks: Record<string, { type: string; value: boolean }>;
   error: string | null;
   selectedNodeTypes: string[];
   selectedLinkTypes: string[];
@@ -37,29 +38,37 @@ const dataSlice = createSlice({
       state.data = action.payload;
       state.CopyData = action.payload;
     },
-    setUniqueNodes: (state, action: PayloadAction<Record<string, boolean>>) => {
+    setUniqueNodes: (state, action: PayloadAction<Record<string, { type: string; value: boolean }>>) => {
       state.UniqueNodes = action.payload;
-
-      // Filter CopyData to keep only rows where both nodes are visible
-      state.CopyData = state.data.filter(
-        (row) =>
-          action.payload[row.entity_1_type] !== false &&
-          action.payload[row.entity_2_type] !== false     
-      );
+      // Update CopyData based on the new UniqueNodes and UniqueLinks
+      updateCopyData(state);
     },
-    setUniqueLinks: (state, action: PayloadAction<Record<string, boolean>>) => {
+    setUniqueLinks: (state, action: PayloadAction<Record<string, { type: string; value: boolean }>>) => {
       state.UniqueLinks = action.payload;
-
-      // Filter CopyData to keep only rows where the edge type is visible
-      state.CopyData = state.data.filter(
-        (row) => action.payload[row.edge_type] !== false
-      );
+      // Update CopyData based on the new UniqueNodes and UniqueLinks
+      updateCopyData(state);
     },
     setError: (state, action: PayloadAction<string>) => {
       state.error = action.payload;
     },
   },
 });
+
+// Function to update CopyData based on the conditions
+function updateCopyData(state: DataState) {
+  state.CopyData = state.data.filter(row => {
+    // Check if `entity_1_type` and `entity_2_type` are in UniqueNodes and their value is true
+    const isValidNodeType =
+      (state.UniqueNodes[row.entity_1_type]?.value === true) &&
+      (state.UniqueNodes[row.entity_2_type]?.value === true);
+
+    // Check if `edge_type` is in UniqueLinks and its value is true
+    const isValidLinkType = state.UniqueLinks[row.edge_type]?.value === true;
+
+    // Only include rows where all conditions are met
+    return isValidNodeType && isValidLinkType;
+  });
+}
 
 export const { setData, setUniqueNodes, setUniqueLinks, setError } = dataSlice.actions;
 
