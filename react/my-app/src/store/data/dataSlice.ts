@@ -1,10 +1,12 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 // Define the DataRow type for your data
 interface DataRow {
-  name: string;
-  age: number;
-  occupation: string;
+  entity_1: string;
+  entity_2: string;
+  entity_1_type: string;
+  entity_2_type: string;
+  edge_type: string;
 }
 
 interface DataState {
@@ -28,7 +30,7 @@ const initialState: DataState = {
 };
 
 const dataSlice = createSlice({
-  name: 'data',
+  name: "data",
   initialState,
   reducers: {
     setData: (state, action: PayloadAction<DataRow[]>) => {
@@ -37,10 +39,21 @@ const dataSlice = createSlice({
     },
     setUniqueNodes: (state, action: PayloadAction<Record<string, boolean>>) => {
       state.UniqueNodes = action.payload;
+
+      // Filter CopyData to keep only rows where both nodes are visible
+      state.CopyData = state.data.filter(
+        (row) =>
+          action.payload[row.entity_1_type] !== false &&
+          action.payload[row.entity_2_type] !== false
+      );
     },
     setUniqueLinks: (state, action: PayloadAction<Record<string, boolean>>) => {
       state.UniqueLinks = action.payload;
-      console.log( action.payload , ' action.payload  action.payload ')
+
+      // Filter CopyData to keep only rows where the edge type is visible
+      state.CopyData = state.data.filter(
+        (row) => action.payload[row.edge_type] !== false
+      );
     },
     setError: (state, action: PayloadAction<string>) => {
       state.error = action.payload;
