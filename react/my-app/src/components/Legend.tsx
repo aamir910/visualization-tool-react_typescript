@@ -1,8 +1,9 @@
 import React from "react";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { Card, Space, Checkbox } from "antd";
 import { renderLegendShape } from "./utils/funstions";
 import { RootState } from "../store";
+import { setUniqueNodes, setUniqueLinks } from "../store/data/dataSlice";
 
 interface LegendProps {
   nodeColors: Record<string, string>;
@@ -11,6 +12,8 @@ interface LegendProps {
 }
 
 const Legend: React.FC<LegendProps> = ({ nodeColors, linkColors, onColorChange }) => {
+  const dispatch = useDispatch();
+
   // Accessing state from Redux
   const { UniqueNodes, UniqueLinks } = useSelector((state: RootState) => state.data);
 
@@ -18,6 +21,14 @@ const Legend: React.FC<LegendProps> = ({ nodeColors, linkColors, onColorChange }
     console.log("Dispatched State - UniqueNodes:", UniqueNodes);
     console.log("Dispatched State - UniqueLinks:", UniqueLinks);
   }, [UniqueNodes, UniqueLinks]);
+
+  const handleCheckboxChange = (type: string, isNode: boolean) => {
+    if (isNode) {
+      dispatch(setUniqueNodes({ ...UniqueNodes, [type]: !UniqueNodes[type] }));
+    } else {
+      dispatch(setUniqueLinks({ ...UniqueLinks, [type]: !UniqueLinks[type] }));
+    }
+  };
 
   const handleColorPicker = (type: string, currentColor: string, isNode: boolean) => {
     const input = document.createElement("input");
@@ -33,7 +44,10 @@ const Legend: React.FC<LegendProps> = ({ nodeColors, linkColors, onColorChange }
       <Space direction="vertical">
         {Object.entries(UniqueNodes).map(([type, visible]) => (
           <div key={type} style={{ display: "flex", alignItems: "center" }}>
-            <Checkbox checked={visible} disabled />
+            <Checkbox
+              checked={visible}
+              onChange={() => handleCheckboxChange(type, true)}
+            />
             <img
               src={renderLegendShape(type, nodeColors[type], true)}
               alt={type}
@@ -49,7 +63,10 @@ const Legend: React.FC<LegendProps> = ({ nodeColors, linkColors, onColorChange }
       <Space direction="vertical">
         {Object.entries(UniqueLinks).map(([type, visible]) => (
           <div key={type} style={{ display: "flex", alignItems: "center" }}>
-            <Checkbox checked={visible}  />
+            <Checkbox
+              checked={visible}
+              onChange={() => handleCheckboxChange(type, false)}
+            />
             <img
               src={renderLegendShape(type, linkColors[type], false)}
               alt={type}
