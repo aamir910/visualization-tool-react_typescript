@@ -1,24 +1,25 @@
 import React, { useEffect, useState } from "react";
-import { Button, Spin, Row, Col, Card } from "antd";
+import { Button, Spin, Row, Col, Card, Modal } from "antd";
 import { useNavigate } from "react-router-dom";
 import { ForceGraph2D } from "react-force-graph";
 import { useSelector } from "react-redux";
 import { transformData } from "./parseFile";
 import { RootState } from "../store";
-import Legend from "./Legend"; // Import the Legend component
+import Legend from "./Legend";
+import NodeInfoTable from "./NodeInfoTable"; // Import the NodeInfoTable component
 
 const VisualizePage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [graphData, setGraphData] = useState({ nodes: [], links: [] });
   const [nodeColors, setNodeColors] = useState<Record<string, string>>({});
   const [linkColors, setLinkColors] = useState<Record<string, string>>({});
+  const [selectedNode, setSelectedNode] = useState<any>(null); // Store the selected node
+  const [isModalVisible, setIsModalVisible] = useState(false); // Control Modal visibility
   const navigate = useNavigate();
   const data = useSelector((state: RootState) => state.data.CopyData);
 
   useEffect(() => {
     if (data) {
-      console.log(data)
-      
       const transformed = transformData(data);
       const uniqueNodeTypes = Array.from(new Set(transformed.nodes.map((node) => node.type)));
       const uniqueLinkTypes = Array.from(new Set(transformed.links.map((link) => link.type)));
@@ -67,6 +68,16 @@ const VisualizePage: React.FC = () => {
     }
   };
 
+  const handleNodeClick = (node: any) => {
+    setSelectedNode(node); // Set the clicked node as selected
+    setIsModalVisible(true); // Show the modal
+  };
+
+  const handleCloseModal = () => {
+    setIsModalVisible(false);
+    setSelectedNode(null); // Clear the selected node
+  };
+
   const handleGoBack = () => {
     navigate("/upload");
   };
@@ -101,12 +112,25 @@ const VisualizePage: React.FC = () => {
                   linkColor={(link: any) => linkColors[link.type] || "#999"}
                   width={1000}
                   height={500}
+                  onNodeClick={handleNodeClick} // Handle node click
                 />
               </div>
             </Card>
           </Col>
         </Row>
       )}
+
+      {/* Modal for Node Information */}
+      <Modal
+        title="Node Information"
+        visible={isModalVisible}
+        onCancel={handleCloseModal}
+        footer={null} // No footer buttons
+        centered // Center the modal on the screen
+        width={600} // Set the modal width
+      >
+        {selectedNode && <NodeInfoTable node={selectedNode} />} {/* Pass the selected node */}
+      </Modal>
     </div>
   );
 };
