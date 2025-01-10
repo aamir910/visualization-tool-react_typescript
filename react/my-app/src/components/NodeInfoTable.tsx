@@ -11,11 +11,17 @@ const NodeInfoTable: React.FC<NodeInfoTableProps> = ({ node }) => {
     { title: "Value", dataIndex: "value", key: "value" },
   ];
 
-  const data = Object.keys(node).map((key) => ({
-    key,
-    property: key,
-    value: node[key],
-  }));
+  // List of properties to always show
+  const requiredProperties = ["name", "id", "group"];
+
+  // Filter and include only the properties that are in requiredProperties and are not null or undefined
+  const data = Object.keys(node)
+    .filter((key) => requiredProperties.includes(key) || (key.startsWith("description") && node[key] !== null && node[key] !== undefined))
+    .map((key) => ({
+      key,
+      property: key,
+      value: node[key],
+    }));
 
   return (
     <div>
