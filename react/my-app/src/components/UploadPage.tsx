@@ -6,6 +6,7 @@ import { parseCSVFile } from "./parseFile";
 import { useDispatch } from "react-redux";
 
 import "./styles/UploadPage.css"; // Import the custom CSS file
+import DownloadSampleButton from "./DownloadSampleButton";
 
 const { Title, Paragraph } = Typography;
 
@@ -140,6 +141,7 @@ const UploadPage: React.FC = () => {
             pagination={{ pageSize: 5 }}
             className="data-table"
           />
+       
         ) : (
           <Paragraph className="no-data">No data to display. Upload and parse a file to preview data.</Paragraph>
         )}
@@ -153,6 +155,7 @@ const UploadPage: React.FC = () => {
       >
         Upload and Visualize
       </Button>
+      <DownloadSampleButton/>
     </div>
   );
 };
