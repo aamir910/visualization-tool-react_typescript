@@ -12,6 +12,7 @@ interface ParseResult<T> {
   data: T[];
 }
 
+
 type ParseSuccessCallback<T> = (data: T[]) => void;
 type ParseErrorCallback = (errorMessage: string) => void;
 
@@ -166,7 +167,9 @@ interface DataItem {
   entity_1_type: string;
   entity_2_type: string;
   edge_type: string;
+  [key: string]: any; // Allow any other string key to access properties
 }
+
 
 interface Node {
   id: string;
