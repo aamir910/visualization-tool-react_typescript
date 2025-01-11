@@ -11,6 +11,13 @@ import {
 interface ParseResult<T> {
   data: T[];
 }
+interface DataRow {
+  entity_1: string;
+  entity_1_type: string;
+  entity_2: string;
+  entity_2_type: string;
+  edge_type: string;
+}
 
 
 type ParseSuccessCallback<T> = (data: T[]) => void;
