@@ -23,7 +23,7 @@ const UploadPage: React.FC = () => {
   const navigate = useNavigate();
 
   const dispatch = useDispatch();
-  const REQUIRED_COLUMNS: string[] = ["entity_1", "entity_2", "edge_type"];
+  const REQUIRED_COLUMNS: string[] = ["entity_1", "entity_2"];
   const lastUploadedFile = useRef<File | null>(null);
 
   const beforeFileUpload = (file: File): boolean | Upload.LIST_IGNORE => {
