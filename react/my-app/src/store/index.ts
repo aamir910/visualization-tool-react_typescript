@@ -11,4 +11,5 @@ const store = configureStore({
   },
 });
 
+export type RootState = ReturnType<typeof store.getState>;  // <-- This defines the RootState type
 export default store;  // Export the store to use in the Provider component
