@@ -1,7 +1,7 @@
 import React from "react";
-import { Menu, Dropdown, Avatar, Button, Switch } from "antd";
+import { Menu, Dropdown, Avatar, Switch } from "antd";
 import { Link } from "react-router-dom";
-import { DownOutlined, UserOutlined } from "@ant-design/icons";
+import {  UserOutlined } from "@ant-design/icons";
 import "./Navbar.css"; // Add styling here
 
 const Navbar: React.FC = () => {

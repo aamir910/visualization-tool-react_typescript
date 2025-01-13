@@ -16,10 +16,7 @@ const Legend: React.FC<LegendProps> = ({ nodeColors, linkColors, onColorChange }
 
   const { UniqueNodes, UniqueLinks } = useSelector((state: RootState) => state.data);
 
-  React.useEffect(() => {
-    console.log("Dispatched State - UniqueNodes:", UniqueNodes);
-    console.log("Dispatched State - UniqueLinks:", UniqueLinks);
-  }, [UniqueNodes, UniqueLinks]);
+
 
   const handleCheckboxChange = (type: string, isNode: boolean) => {
     if (isNode) {
@@ -71,21 +68,22 @@ const Legend: React.FC<LegendProps> = ({ nodeColors, linkColors, onColorChange }
 
       <h4 style={{ marginTop: "20px" }}>Links</h4>
       <Space direction="vertical">
-        {Object.entries(UniqueLinks).map(([type, { name, value }]) => (
-          <div key={type} style={{ display: "flex", alignItems: "center" }}>
-            <Checkbox
-              checked={value}
-              onChange={() => handleCheckboxChange(type, false)}
-            />
-            <img
-              src={renderLegendShape(name, linkColors[type], false)}
-              alt={type}
-              style={{ cursor: "pointer", margin: "0 10px" }}
-              onClick={() => handleColorPicker(type, linkColors[type], false)}
-            />
-            <span>{type}</span>
-          </div>
-        ))}
+      {Object.entries(UniqueLinks).map(([key, { type, value }]) => (
+  <div key={key} style={{ display: "flex", alignItems: "center" }}>
+    <Checkbox
+      checked={value}
+      onChange={() => handleCheckboxChange(key, false)}
+    />
+    <img
+      src={renderLegendShape(type, linkColors[key], false)}  // ✅ FIXED HERE
+      alt={key}
+      style={{ cursor: "pointer", margin: "0 10px" }}
+      onClick={() => handleColorPicker(key, linkColors[key], false)}
+    />
+    <span>{key}</span>
+  </div>
+))}
+
       </Space>
     </Card>
   );

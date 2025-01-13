@@ -4,6 +4,7 @@ import { UploadOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import { parseCSVFile } from "./parseFile";
 import { useDispatch } from "react-redux";
+import { setData } from "../store/data/dataSlice"; // Assuming these are your action creators
 
 import "./styles/UploadPage.css"; // Import the custom CSS file
 import DownloadSampleButton from "./DownloadSampleButton";
@@ -12,7 +13,6 @@ const { Title, Paragraph } = Typography;
 
 interface DataRow {
   [key: string]: string | number | undefined;
-  key: number;
 }
 
 const UploadPage: React.FC = () => {
@@ -27,7 +27,8 @@ const UploadPage: React.FC = () => {
   const REQUIRED_COLUMNS: string[] = ["entity_1", "entity_2"];
   const lastUploadedFile = useRef<File | null>(null);
 
-  const beforeFileUpload = (file: File): boolean | Upload.LIST_IGNORE => {
+  // Fix for Upload namespace issue
+  const beforeFileUpload = (file: File): boolean | typeof Upload.LIST_IGNORE => {
     const isCsv = file.type === "text/csv";
     const isExcel =
       file.type === "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ||
@@ -60,17 +61,21 @@ const UploadPage: React.FC = () => {
 
       parseCSVFile<DataRow>(file, REQUIRED_COLUMNS, (data) => {
         const headers = Object.keys(data[0]);
+
+        // Ensure dataIndex and key are strings
         const generatedColumns = headers.map((key) => ({
           title: key.charAt(0).toUpperCase() + key.slice(1),
-          dataIndex: key,
-          key,
+          dataIndex: key.toString(),
+          key: key.toString(),
         }));
 
         setColumns(generatedColumns);
+
+        // Fix duplicate `key` by using a unique identifier
         setTableData(
           data.map((row, index) => ({
-            key: index,
             ...row,
+            key: `${index}`, // Ensure key is unique and a string
           }))
         );
 
@@ -79,17 +84,14 @@ const UploadPage: React.FC = () => {
         const uniqueLinkTypes = new Set<string>();
 
         data.forEach((row) => {
-          if (row.entity_1_type) uniqueNodeTypes.add(row.entity_1_type);
-          if (row.entity_2_type) uniqueNodeTypes.add(row.entity_2_type);
-          if (row.edge_type) uniqueLinkTypes.add(row.edge_type);
+          if (row["entity_1_type"]) uniqueNodeTypes.add(String(row["entity_1_type"]));
+          if (row["entity_2_type"]) uniqueNodeTypes.add(String(row["entity_2_type"]));
+          if (row["edge_type"]) uniqueLinkTypes.add(String(row["edge_type"]));
         });
 
         // Dispatch actions to update Redux state
-        dispatch(setData(data)); // Store the raw data
-        dispatch(updateSelectedTypes({
-          nodeTypes: Array.from(uniqueNodeTypes),
-          linkTypes: Array.from(uniqueLinkTypes),
-        }));
+        dispatch(setData(data));
+    
 
         setLoading(false);
         setFileParsed(true);
@@ -137,13 +139,14 @@ const UploadPage: React.FC = () => {
             dataSource={tableData}
             columns={columns}
             bordered
-            rowKey="key"
+            rowKey="key" // Uses the unique key we set
             pagination={{ pageSize: 5 }}
             className="data-table"
           />
-       
         ) : (
-          <Paragraph className="no-data">No data to display. Upload and parse a file to preview data.</Paragraph>
+          <Paragraph className="no-data">
+            No data to display. Upload and parse a file to preview data.
+          </Paragraph>
         )}
       </div>
 
@@ -155,7 +158,8 @@ const UploadPage: React.FC = () => {
       >
         Upload and Visualize
       </Button>
-      <DownloadSampleButton/>
+
+      <DownloadSampleButton />
     </div>
   );
 };

@@ -6,21 +6,44 @@ import { useSelector } from "react-redux";
 import { transformData } from "./parseFile";
 import { RootState } from "../store";
 import Legend from "./Legend";
-import NodeInfoTable from "./NodeInfoTable"; // Import the NodeInfoTable component
+import NodeInfoTable from "./NodeInfoTable";
+
+// Define Node and Link types
+interface Node {
+  id: string;
+  type: string;
+  group?: string;
+  x?: number;
+  y?: number;
+}
+
+interface Link {
+  source: string;
+  target: string;
+  type: string;
+}
+
+interface GraphData {
+  nodes: Node[];
+  links: Link[];
+}
 
 const VisualizePage: React.FC = () => {
   const [loading, setLoading] = useState(false);
-  const [graphData, setGraphData] = useState({ nodes: [], links: [] });
+  const [graphData, setGraphData] = useState<GraphData>({ nodes: [], links: [] });
   const [nodeColors, setNodeColors] = useState<Record<string, string>>({});
   const [linkColors, setLinkColors] = useState<Record<string, string>>({});
-  const [selectedNode, setSelectedNode] = useState<any>(null); // Store the selected node
-  const [isModalVisible, setIsModalVisible] = useState(false); // Control Modal visibility
+  const [selectedNode, setSelectedNode] = useState<Node | null>(null);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+
   const navigate = useNavigate();
   const data = useSelector((state: RootState) => state.data.CopyData);
 
   useEffect(() => {
     if (data) {
-      const transformed = transformData(data);
+      setLoading(true);
+      const transformed: GraphData = transformData(data);
+
       const uniqueNodeTypes = Array.from(new Set(transformed.nodes.map((node) => node.type)));
       const uniqueLinkTypes = Array.from(new Set(transformed.links.map((link) => link.type)));
 
@@ -37,6 +60,7 @@ const VisualizePage: React.FC = () => {
       setNodeColors(initialNodeColors);
       setLinkColors(initialLinkColors);
       setGraphData(transformed);
+      setLoading(false);
     }
   }, [data]);
 
@@ -48,7 +72,7 @@ const VisualizePage: React.FC = () => {
     }
   };
 
-  const drawNode = (node: any, ctx: any) => {
+  const drawNode = (node: Node, ctx: CanvasRenderingContext2D) => {
     const shapeSize = 8;
     const color = nodeColors[node.type] || "#999";
 
@@ -56,26 +80,26 @@ const VisualizePage: React.FC = () => {
 
     if (node.group === "entity_2_type") {
       ctx.beginPath();
-      ctx.moveTo(node.x, node.y - shapeSize);
-      ctx.lineTo(node.x - shapeSize, node.y + shapeSize);
-      ctx.lineTo(node.x + shapeSize, node.y + shapeSize);
+      ctx.moveTo(node.x!, node.y! - shapeSize);
+      ctx.lineTo(node.x! - shapeSize, node.y! + shapeSize);
+      ctx.lineTo(node.x! + shapeSize, node.y! + shapeSize);
       ctx.closePath();
       ctx.fill();
     } else {
       ctx.beginPath();
-      ctx.arc(node.x, node.y, shapeSize, 0, 2 * Math.PI, false);
+      ctx.arc(node.x!, node.y!, shapeSize, 0, 2 * Math.PI, false);
       ctx.fill();
     }
   };
 
-  const handleNodeClick = (node: any) => {
-    setSelectedNode(node); // Set the clicked node as selected
-    setIsModalVisible(true); // Show the modal
+  const handleNodeClick = (node: Node) => {
+    setSelectedNode(node);
+    setIsModalVisible(true);
   };
 
   const handleCloseModal = () => {
     setIsModalVisible(false);
-    setSelectedNode(null); // Clear the selected node
+    setSelectedNode(null);
   };
 
   const handleGoBack = () => {
@@ -112,7 +136,7 @@ const VisualizePage: React.FC = () => {
                   linkColor={(link: any) => linkColors[link.type] || "#999"}
                   width={1000}
                   height={500}
-                  onNodeClick={handleNodeClick} // Handle node click
+                  onNodeClick={handleNodeClick}
                 />
               </div>
             </Card>
@@ -120,16 +144,15 @@ const VisualizePage: React.FC = () => {
         </Row>
       )}
 
-      {/* Modal for Node Information */}
       <Modal
         title="Node Information"
-        visible={isModalVisible}
+        open={isModalVisible}
         onCancel={handleCloseModal}
-        footer={null} // No footer buttons
-        centered // Center the modal on the screen
-        width={600} // Set the modal width
+        footer={null}
+        centered
+        width={600}
       >
-        {selectedNode && <NodeInfoTable node={selectedNode} />} {/* Pass the selected node */}
+        {selectedNode && <NodeInfoTable node={selectedNode} />}
       </Modal>
     </div>
   );
