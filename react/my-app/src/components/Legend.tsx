@@ -14,7 +14,6 @@ interface LegendProps {
 const Legend: React.FC<LegendProps> = ({ nodeColors, linkColors, onColorChange }) => {
   const dispatch = useDispatch();
 
-  // Accessing state from Redux
   const { UniqueNodes, UniqueLinks } = useSelector((state: RootState) => state.data);
 
   React.useEffect(() => {
@@ -44,7 +43,8 @@ const Legend: React.FC<LegendProps> = ({ nodeColors, linkColors, onColorChange }
     const input = document.createElement("input");
     input.type = "color";
     input.value = currentColor;
-    input.oninput = (e) => onColorChange(type, e.currentTarget.value, isNode);
+    input.oninput = (e) =>
+      onColorChange(type, (e.currentTarget as HTMLInputElement).value, isNode); // ✅ FIXED HERE
     input.click();
   };
 
@@ -52,21 +52,21 @@ const Legend: React.FC<LegendProps> = ({ nodeColors, linkColors, onColorChange }
     <Card title="Legend" style={{ width: "100%" }}>
       <h4>Nodes</h4>
       <Space direction="vertical">
-      {Object.entries(UniqueNodes).map(([key, { type, value }]) => (
-  <div key={key} style={{ display: "flex", alignItems: "center" }}>
-    <Checkbox
-      checked={value}
-      onChange={() => handleCheckboxChange(key, true)}
-    />
-    <img
-      src={renderLegendShape(type, nodeColors[key], true)}
-      alt={key}
-      style={{ cursor: "pointer", margin: "0 10px" }}
-      onClick={() => handleColorPicker(key, nodeColors[key], true)}
-    />
-    <span>{key}</span>
-  </div>
-))}
+        {Object.entries(UniqueNodes).map(([key, { type, value }]) => (
+          <div key={key} style={{ display: "flex", alignItems: "center" }}>
+            <Checkbox
+              checked={value}
+              onChange={() => handleCheckboxChange(key, true)}
+            />
+            <img
+              src={renderLegendShape(type, nodeColors[key], true)}
+              alt={key}
+              style={{ cursor: "pointer", margin: "0 10px" }}
+              onClick={() => handleColorPicker(key, nodeColors[key], true)}
+            />
+            <span>{key}</span>
+          </div>
+        ))}
       </Space>
 
       <h4 style={{ marginTop: "20px" }}>Links</h4>
