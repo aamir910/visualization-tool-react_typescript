@@ -3,7 +3,7 @@ import { Button, Spin, Row, Col, Card, Modal } from "antd";
 import { useNavigate } from "react-router-dom";
 import { ForceGraph2D } from "react-force-graph";
 import { useSelector } from "react-redux";
-import { transformData } from "./parseFile";
+import { transformData } from "./utils/TransformedData";
 import { RootState } from "../store";
 import Legend from "./Legend";
 import NodeInfoTable from "./NodeInfoTable";
