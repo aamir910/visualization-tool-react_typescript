@@ -6,6 +6,7 @@ import VisualizePage from './components/VisualizePage';
 import { Provider } from 'react-redux';
 import store from './store';
 import Layout from './layouts/Layout';
+import VisualizationTypesPage from './components/TypeSelector/VisualizationTypesPage';
 
 const App: React.FC = () => {
   return (
@@ -17,6 +18,8 @@ const App: React.FC = () => {
         <Route path="/" element={<IntroductionPage />} />
         <Route path="/upload" element={<UploadPage />} />
         <Route path="/visualize" element={<VisualizePage />} />
+        
+        <Route path="/VisualizationTypes" element={<VisualizationTypesPage/>} />
       </Routes>
       
       </Layout>

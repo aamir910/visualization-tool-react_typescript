@@ -7,7 +7,7 @@ const IntroductionPage: React.FC = () => {
   const navigate = useNavigate();
 
   const handleNavigate = () => {
-    navigate('/upload');
+    navigate('/VisualizationTypes');
   };
 
   return (
