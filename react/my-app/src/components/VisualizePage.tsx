@@ -62,6 +62,13 @@ const VisualizePage: React.FC = () => {
       setLoading(false);
     }
   }, [data]);
+  const handleColorChange = (type: string, newColor: string, isNode: boolean) => {
+    if (isNode) {
+      setNodeColors({ ...nodeColors, [type]: newColor });
+    } else {
+      setLinkColors({ ...linkColors, [type]: newColor });
+    }
+  };
 
   const drawNode = (node: Node, ctx: CanvasRenderingContext2D) => {
     const size = 8;
@@ -168,7 +175,7 @@ const VisualizePage: React.FC = () => {
           <Legend
     nodeColors={nodeColors}
     linkColors={linkColors}
-    onColorChange={() => {}}
+    onColorChange={handleColorChange}
     entity1Shape={entity1Shape}
     entity2Shape={entity2Shape}
   />
