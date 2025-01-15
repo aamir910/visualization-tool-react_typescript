@@ -67,26 +67,62 @@ const VisualizePage: React.FC = () => {
     const size = 8;
     const color = nodeColors[node.type] || "#999";
     ctx.fillStyle = color;
-
+  
     ctx.beginPath();
-    const shape = node.group === "entity_1_type" ? entity1Shape : node.group === "entity_2_type" ? entity2Shape : "circle";
-
+    const shape =
+      node.group === "entity_1_type"
+        ? entity1Shape
+        : node.group === "entity_2_type"
+        ? entity2Shape
+        : "circle";
+  
     switch (shape) {
       case "circle":
         ctx.arc(node.x!, node.y!, size, 0, 2 * Math.PI);
         break;
+  
       case "square":
         ctx.rect(node.x! - size, node.y! - size, size * 2, size * 2);
         break;
+  
       case "triangle":
         ctx.moveTo(node.x!, node.y! - size);
         ctx.lineTo(node.x! - size, node.y! + size);
         ctx.lineTo(node.x! + size, node.y! + size);
         ctx.closePath();
         break;
+  
+      case "pentagon":
+        for (let i = 0; i < 5; i++) {
+          const angle = (i * (2 * Math.PI)) / 5 - Math.PI / 2;
+          const x = node.x! + size * Math.cos(angle);
+          const y = node.y! + size * Math.sin(angle);
+          i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+        }
+        ctx.closePath();
+        break;
+  
+      case "hexagon":
+        for (let i = 0; i < 6; i++) {
+          const angle = (i * (2 * Math.PI)) / 6 - Math.PI / 2;
+          const x = node.x! + size * Math.cos(angle);
+          const y = node.y! + size * Math.sin(angle);
+          i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+        }
+        ctx.closePath();
+        break;
+  
+      case "capsule":
+        const capsuleWidth = size * 2;
+        const capsuleHeight = size;
+        ctx.arc(node.x! - capsuleWidth / 2, node.y!, capsuleHeight, 0.5 * Math.PI, 1.5 * Math.PI);
+        ctx.arc(node.x! + capsuleWidth / 2, node.y!, capsuleHeight, 1.5 * Math.PI, 0.5 * Math.PI);
+        ctx.closePath();
+        break;
     }
     ctx.fill();
   };
+  
 
   const handleNodeClick = (node: Node) => {
     setSelectedNode(node);
@@ -108,6 +144,9 @@ const VisualizePage: React.FC = () => {
             <Option value="circle">Circle (Entity 1)</Option>
             <Option value="square">Square (Entity 1)</Option>
             <Option value="triangle">Triangle (Entity 1)</Option>
+            <Option value="pentagon">pentagon (Entity 1)</Option>
+            <Option value="hexagon">hexagon (Entity 1)</Option>
+            <Option value="capsule">capsule (Entity 1)</Option>
           </Select>
         </Col>
         <Col>
@@ -115,6 +154,9 @@ const VisualizePage: React.FC = () => {
             <Option value="circle">Circle (Entity 2)</Option>
             <Option value="square">Square (Entity 2)</Option>
             <Option value="triangle">Triangle (Entity 2)</Option>
+            <Option value="pentagon">pentagon (Entity 2)</Option>
+            <Option value="hexagon">hexagon (Entity 2)</Option>
+            <Option value="capsule">capsule (Entity 2)</Option>
           </Select>
         </Col>
       </Row>
@@ -122,7 +164,16 @@ const VisualizePage: React.FC = () => {
         <Spin size="large" />
       ) : (
         <Row gutter={24}>
-          <Col span={6}><Legend nodeColors={nodeColors} linkColors={linkColors} onColorChange={() => {}} /></Col>
+          <Col span={6}>
+          <Legend
+    nodeColors={nodeColors}
+    linkColors={linkColors}
+    onColorChange={() => {}}
+    entity1Shape={entity1Shape}
+    entity2Shape={entity2Shape}
+  />
+          
+          </Col>
           <Col span={18}>
             <Card title="Graphs" style={{ width: "100%" }}>
               <ForceGraph2D
