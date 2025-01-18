@@ -97,7 +97,7 @@ const VisualizePage: React.FC = () => {
         ctx.lineTo(node.x! - size, node.y! + size);
         ctx.lineTo(node.x! + size, node.y! + size);
         ctx.closePath();
-        break;
+        break;  
   
       case "pentagon":
         for (let i = 0; i < 5; i++) {
