@@ -12,7 +12,7 @@ const visualizationTypes = [
   {
     name: 'Pie Chart',
     image: './public/images/thumbnail.svg',
-    route: '/pie-chart',
+    route: '/PieUpload',
   },
   {
     name: 'Chord diagram',
