@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Button, Upload, message, Table, Typography } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
 import * as XLSX from "xlsx"; // Import XLSX to read the file
-import PieChart from "./PieChart"; // Import PieChart component
+import { useNavigate } from "react-router-dom"; // Import useNavigate hook
 
 const { Title, Paragraph } = Typography;
 
@@ -15,13 +15,13 @@ interface DataRow {
 const UploadPage_pie: React.FC = () => {
   const [fileList, setFileList] = useState<any[]>([]);
   const [tableData, setTableData] = useState<DataRow[]>([]);
-  const [showPieChart, setShowPieChart] = useState<boolean>(false);
+  const navigate = useNavigate(); // Initialize navigate
 
   // Handle file upload and parse the data
   const handleFileChange = (info: any): void => {
     const file = info.file.originFileObj;
     const reader = new FileReader();
-    
+
     reader.onload = (e: any) => {
       const ab = e.target.result;
       const workbook = XLSX.read(ab, { type: "array" });
@@ -39,7 +39,7 @@ const UploadPage_pie: React.FC = () => {
       setTableData(parsedData);
       setFileList(info.fileList);
     };
-    
+
     reader.readAsArrayBuffer(file);
   };
 
@@ -62,7 +62,8 @@ const UploadPage_pie: React.FC = () => {
       return;
     }
 
-    setShowPieChart(true); // Show the PieChart component
+    // Navigate to PieChart page with state
+    navigate("/pie-chart", { state: { data: tableData } });
   };
 
   return (
@@ -110,8 +111,6 @@ const UploadPage_pie: React.FC = () => {
       >
         Upload and Visualize
       </Button>
-
-      {showPieChart && <PieChart data={tableData} />} {/* Show the PieChart component with data */}
     </div>
   );
 };

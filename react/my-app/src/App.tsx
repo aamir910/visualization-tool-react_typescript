@@ -18,7 +18,8 @@ const App: React.FC = () => {
       <Layout>
       <Routes>
         <Route path="/" element={<IntroductionPage />} />
-    
+
+
 
         <Route path="/upload" element={<UploadPage />} />
         <Route path="/visualize" element={<VisualizePage />} />
@@ -26,7 +27,7 @@ const App: React.FC = () => {
         <Route path="/VisualizationTypes" element={<VisualizationTypesPage/>} />
         <Route path="/PieUpload" element={<UploadPage_pie/>} />
 
-        <Route path="/PieChart" element={<PieChart/>} />
+        <Route path="/pie-chart" element={<PieChart/>} />
 
         
       </Routes>
