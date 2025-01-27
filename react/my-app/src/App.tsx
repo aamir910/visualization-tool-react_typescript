@@ -8,7 +8,8 @@ import store from './store';
 import Layout from './layouts/Layout';
 import VisualizationTypesPage from './components/TypeSelector/VisualizationTypesPage';
 import UploadPage_pie from './pie_chart/components/UploadPage_pie';
-import PieChart from './pie_chart/components/PieChart';
+import PieChartComponent from './pie_chart/components/PieChart';
+import DonutChart from './pie_chart/DonutChart';
 
 const App: React.FC = () => {
   return (
@@ -27,8 +28,10 @@ const App: React.FC = () => {
         <Route path="/VisualizationTypes" element={<VisualizationTypesPage/>} />
         <Route path="/PieUpload" element={<UploadPage_pie/>} />
 
-        <Route path="/pie-chart" element={<PieChart/>} />
+        <Route path="/pie-chart" element={<PieChartComponent/>} />
 
+
+        <Route path="/donut-chart" element={<DonutChart/>} />
         
       </Routes>
       

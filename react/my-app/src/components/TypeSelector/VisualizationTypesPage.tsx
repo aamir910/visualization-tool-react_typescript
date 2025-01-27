@@ -17,7 +17,12 @@ const visualizationTypes = [
   {
     name: 'Chord diagram',
     image: './public/images/chord-diagram-labels-show-1.png',
-    route: '/pie-chart',
+    route: '/PieUpload',
+  },
+  {
+     name: 'Donut chart',
+    image: './public/images/donut-chart-example.svg',
+    route: '/PieUpload',
   },
  
   // Add more visualization types here

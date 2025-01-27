@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { Pie } from "react-chartjs-2";
 import { Card } from "antd";
 import { useLocation } from "react-router-dom"; // Import useLocation to access state
@@ -12,7 +12,7 @@ import {
 
 ChartJS.register(ArcElement, Tooltip, Legend, Title);
 
-const PieChart: React.FC = () => {
+const DonutChart: React.FC = () => {
   const location = useLocation(); // Access location state
   const data = location.state?.data || []; // Get data from state or fallback to empty array
 
@@ -73,18 +73,19 @@ const PieChart: React.FC = () => {
       },
       title: {
         display: true,
-        text: "Pie Chart Example",
+        text: "Donut Chart Example",
         color: "#111",
         font: {
           size: 18,
         },
       },
     },
+    cutout: "50%", // Always render as a donut chart
   };
 
   return (
     <Card
-      title="Pie Chart Visualization"
+      title="Donut Chart Visualization"
       bordered={true}
       style={{
         maxWidth: 500,
@@ -98,4 +99,4 @@ const PieChart: React.FC = () => {
   );
 };
 
-export default PieChart;
+export default DonutChart;

@@ -63,7 +63,7 @@ const UploadPage_pie: React.FC = () => {
     }
 
     // Navigate to PieChart page with state
-    navigate("/pie-chart", { state: { data: tableData } });
+    navigate("/donut-chart", { state: { data: tableData } });
   };
 
   return (
