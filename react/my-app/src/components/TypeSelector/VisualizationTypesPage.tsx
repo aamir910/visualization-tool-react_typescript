@@ -24,7 +24,17 @@ const visualizationTypes = [
     image: './public/images/donut-chart-example.svg',
     route: '/PieUpload',
   },
- 
+  {
+    name: 'Nested Donut Chart',
+   image: './public/images/nestedDonutGraph.png',
+   route: '/PieUpload',
+ },
+ {
+  name: ' Grainy Gradient PieChart',
+ image: './public/images/GrainyGradientPieChart.png',
+ route: '/PieUpload',
+},
+
   // Add more visualization types here
 ];
 

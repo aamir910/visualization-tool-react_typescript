@@ -10,6 +10,8 @@ import VisualizationTypesPage from './components/TypeSelector/VisualizationTypes
 import UploadPage_pie from './pie_chart/components/UploadPage_pie';
 import PieChartComponent from './pie_chart/components/PieChart';
 import DonutChart from './pie_chart/DonutChart';
+import NestedDonutChart from './pie_chart/components/NestedDonutChart';
+import GrainyGradientPieChart from './pie_chart/components/GrainyGradientPieChart';
 
 const App: React.FC = () => {
   return (
@@ -32,6 +34,12 @@ const App: React.FC = () => {
 
 
         <Route path="/donut-chart" element={<DonutChart/>} />
+
+
+        <Route path="/NestedDonutChart" element={<NestedDonutChart />} />
+
+        <Route path="/GrainyGradientPieChart" element={<GrainyGradientPieChart />} />
+       
         
       </Routes>
       

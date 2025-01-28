@@ -61,9 +61,37 @@ const UploadPage_pie: React.FC = () => {
       message.error("Please upload a file first");
       return;
     }
+    const data = [
+      {
+        name: "Category A",
+        value: 120,
+        children: [
+          { name: "Subcategory A1", value: 40 },
+          { name: "Subcategory A2", value: 80 },
+        ],
+      },
+      {
+        name: "Category B",
+        value: 100,
+        children: [
+          { name: "Subcategory B1", value: 60 },
+          { name: "Subcategory B2", value: 40 },
+        ],
+      },
+    ];
+  
+    
+    const GrainyGradientPieChart = [
+      { category: "Default A", value: 40, color: "#6f3d75" },
+      { category: "Default B", value: 30, color: "#494949" },
+      { category: "Default C", value: 20, color: "#b86e47" },
+      { category: "Default D", value: 10, color: "#8b6d67" },
+    ];
 
     // Navigate to PieChart page with state
-    navigate("/donut-chart", { state: { data: tableData } });
+    // navigate("/NestedDonutChart", { state: { data: data } });
+    
+    navigate("/GrainyGradientPieChart", { state: { data: GrainyGradientPieChart } });
   };
 
   return (
