@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { Pie } from "react-chartjs-2";
 import { Card } from "antd";
-import { useLocation } from "react-router-dom"; // Import useLocation to access state
+import { useLocation } from "react-router-dom";
 import {
   Chart as ChartJS,
   ArcElement,
@@ -13,38 +13,43 @@ import {
 ChartJS.register(ArcElement, Tooltip, Legend, Title);
 
 const PieChart: React.FC = () => {
-  const location = useLocation(); // Access location state
-  const data = location.state?.data || []; // Get data from state or fallback to empty array
+  const location = useLocation();
+  const data = location.state?.data || [];
+  const chartRef = useRef<any>(null);
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const [colors, setColors] = useState<string[]>([
+    "rgba(54, 162, 235, 0.7)",
+    "rgba(173, 216, 230, 0.7)",
+    "rgba(255, 99, 132, 0.7)",
+    "rgba(255, 182, 193, 0.7)",
+    "rgba(75, 192, 192, 0.7)",
+    "rgba(144, 238, 144, 0.7)",
+    "rgba(153, 102, 255, 0.7)",
+    "rgba(221, 160, 221, 0.7)",
+    "rgba(255, 206, 86, 0.7)",
+    "rgba(255, 255, 224, 0.7)",
+    "rgba(0, 128, 0, 0.7)",
+    "rgba(144, 238, 144, 0.7)",
+    "rgba(255, 69, 0, 0.7)",
+    "rgba(255, 165, 0.7)",
+    "rgba(255, 99, 71, 0.7)",
+    "rgba(255, 239, 0, 0.7)",
+    "rgba(32, 178, 170, 0.7)",
+    "rgba(224, 255, 255, 0.7)",
+    "rgba(0, 0, 128, 0.7)",
+    "rgba(135, 206, 235, 0.7)",
+  ]);
 
   const labels = data.map((item: any) => item.label);
   const values = data.map((item: any) => item.value);
 
-  // Define a color scheme with alternating dark and light colors
-  const colorScheme = [
-    "rgba(54, 162, 235, 0.7)", // Dark blue
-    "rgba(173, 216, 230, 0.7)", // Light blue
-    "rgba(255, 99, 132, 0.7)", // Dark red
-    "rgba(255, 182, 193, 0.7)", // Light red
-    "rgba(75, 192, 192, 0.7)", // Dark teal
-    "rgba(144, 238, 144, 0.7)", // Light green
-    "rgba(153, 102, 255, 0.7)", // Dark purple
-    "rgba(221, 160, 221, 0.7)", // Light purple
-    "rgba(255, 206, 86, 0.7)", // Dark yellow
-    "rgba(255, 255, 224, 0.7)", // Light yellow
-    "rgba(0, 128, 0, 0.7)", // Dark green
-    "rgba(144, 238, 144, 0.7)", // Light green
-    "rgba(255, 69, 0, 0.7)", // Dark orange
-    "rgba(255, 165, 0, 0.7)", // Light orange
-    "rgba(255, 99, 71, 0.7)", // Dark tomato
-    "rgba(255, 239, 0, 0.7)", // Light tomato
-    "rgba(32, 178, 170, 0.7)", // Dark light sea green
-    "rgba(224, 255, 255, 0.7)", // Light light sea green
-    "rgba(0, 0, 128, 0.7)", // Dark navy
-    "rgba(135, 206, 235, 0.7)", // Light sky blue
-  ];
-
-  // Adjust the color scheme to match the dataset size
-  const chartColors = colorScheme.slice(0, data.length);
+  const handleColorChange = (index: number, newColor: string) => {
+    const newColors = [...colors];
+    // Maintain a valid RGBA color format
+    newColors[index] = `${newColor}B3`; // B3 adds ~70% opacity
+    setColors(newColors);
+    setSelectedIndex(null);
+  };
 
   const chartData = {
     labels: labels,
@@ -52,8 +57,10 @@ const PieChart: React.FC = () => {
       {
         label: "Dataset 1",
         data: values,
-        backgroundColor: chartColors,
-        borderColor: chartColors.map(color => color.replace("0.7", "1")), // Make border color more opaque
+        backgroundColor: colors.slice(0, data.length),
+        borderColor: colors
+          .slice(0, data.length)
+          .map((color) => color.replace("0.7", "1")),
         borderWidth: 1,
       },
     ],
@@ -61,23 +68,36 @@ const PieChart: React.FC = () => {
 
   const options = {
     responsive: true,
+    onClick: (event: any, elements: any) => {
+      if (elements.length > 0) {
+        const index = elements[0].index;
+        setSelectedIndex(index);
+
+        // Create hidden color input
+        const colorInput = document.createElement("input");
+        colorInput.type = "color";
+        colorInput.style.position = "fixed";
+        colorInput.style.left = "-1000px";
+
+        colorInput.onchange = (e: any) => {
+          handleColorChange(index, e.target.value);
+          document.body.removeChild(colorInput);
+        };
+
+        document.body.appendChild(colorInput);
+        colorInput.click();
+      }
+    },
     plugins: {
       legend: {
         position: "top" as const,
-        labels: {
-          color: "#333",
-          font: {
-            size: 14,
-          },
-        },
+        labels: { color: "#333", font: { size: 14 } },
       },
       title: {
         display: true,
         text: "Pie Chart Example",
         color: "#111",
-        font: {
-          size: 18,
-        },
+        font: { size: 18 },
       },
     },
   };
@@ -93,7 +113,10 @@ const PieChart: React.FC = () => {
         borderRadius: 10,
       }}
     >
-      <Pie data={chartData} options={options} />
+      <Pie ref={chartRef} data={chartData} options={options} />
+      <div style={{ marginTop: 16, textAlign: "center" }}>
+        Click any segment to change its color!
+      </div>
     </Card>
   );
 };
