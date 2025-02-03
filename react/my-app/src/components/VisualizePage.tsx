@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Button, Spin, Row, Col, Card, Modal, Select } from "antd";
 import { useNavigate } from "react-router-dom";
 import { ForceGraph2D } from "react-force-graph";
@@ -7,6 +7,7 @@ import { transformData } from "./utils/TransformedData";
 import { RootState } from "../store";
 import Legend from "./Legend";
 import NodeInfoTable from "./NodeInfoTable";
+import ExportChartModal from "./ExportChartModal";
 
 const { Option } = Select;
 
@@ -30,6 +31,7 @@ interface GraphData {
 }
 
 const VisualizePage: React.FC = () => {
+  const fgRef = useRef<any>();
   const [loading, setLoading] = useState(false);
   const [graphData, setGraphData] = useState<GraphData>({ nodes: [], links: [] });
   const [nodeColors, setNodeColors] = useState<Record<string, string>>({});
@@ -48,20 +50,24 @@ const VisualizePage: React.FC = () => {
       const transformed: GraphData = transformData(data);
       const uniqueNodeTypes = Array.from(new Set(transformed.nodes.map((node) => node.type)));
       const uniqueLinkTypes = Array.from(new Set(transformed.links.map((link) => link.type)));
+      
       const initialNodeColors: Record<string, string> = {};
       uniqueNodeTypes.forEach((type, index) => {
         initialNodeColors[type] = `hsl(${(index * 60) % 360}, 70%, 50%)`;
       });
+      
       const initialLinkColors: Record<string, string> = {};
       uniqueLinkTypes.forEach((type, index) => {
         initialLinkColors[type] = `hsl(${(index * 60 + 180) % 360}, 70%, 50%)`;
       });
+      
       setNodeColors(initialNodeColors);
       setLinkColors(initialLinkColors);
       setGraphData(transformed);
       setLoading(false);
     }
   }, [data]);
+
   const handleColorChange = (type: string, newColor: string, isNode: boolean) => {
     if (isNode) {
       setNodeColors({ ...nodeColors, [type]: newColor });
@@ -70,11 +76,24 @@ const VisualizePage: React.FC = () => {
     }
   };
 
+  const handleScreenshot = () => {
+    if (fgRef.current) {
+      const canvas = fgRef.current.ctx().canvas;
+      const dataUrl = canvas.toDataURL('image/png');
+      const link = document.createElement('a');
+      link.download = 'graph-screenshot.png';
+      link.href = dataUrl;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  };
+
   const drawNode = (node: Node, ctx: CanvasRenderingContext2D) => {
     const size = 8;
     const color = nodeColors[node.type] || "#999";
     ctx.fillStyle = color;
-  
+
     ctx.beginPath();
     const shape =
       node.group === "entity_1_type"
@@ -82,23 +101,23 @@ const VisualizePage: React.FC = () => {
         : node.group === "entity_2_type"
         ? entity2Shape
         : "circle";
-  
+
     switch (shape) {
       case "circle":
         ctx.arc(node.x!, node.y!, size, 0, 2 * Math.PI);
         break;
-  
+
       case "square":
         ctx.rect(node.x! - size, node.y! - size, size * 2, size * 2);
         break;
-  
+
       case "triangle":
         ctx.moveTo(node.x!, node.y! - size);
         ctx.lineTo(node.x! - size, node.y! + size);
         ctx.lineTo(node.x! + size, node.y! + size);
         ctx.closePath();
         break;  
-  
+
       case "pentagon":
         for (let i = 0; i < 5; i++) {
           const angle = (i * (2 * Math.PI)) / 5 - Math.PI / 2;
@@ -108,7 +127,7 @@ const VisualizePage: React.FC = () => {
         }
         ctx.closePath();
         break;
-  
+
       case "hexagon":
         for (let i = 0; i < 6; i++) {
           const angle = (i * (2 * Math.PI)) / 6 - Math.PI / 2;
@@ -118,7 +137,7 @@ const VisualizePage: React.FC = () => {
         }
         ctx.closePath();
         break;
-  
+
       case "capsule":
         const capsuleWidth = size * 2;
         const capsuleHeight = size;
@@ -129,7 +148,6 @@ const VisualizePage: React.FC = () => {
     }
     ctx.fill();
   };
-  
 
   const handleNodeClick = (node: Node) => {
     setSelectedNode(node);
@@ -151,9 +169,9 @@ const VisualizePage: React.FC = () => {
             <Option value="circle">Circle (Entity 1)</Option>
             <Option value="square">Square (Entity 1)</Option>
             <Option value="triangle">Triangle (Entity 1)</Option>
-            <Option value="pentagon">pentagon (Entity 1)</Option>
-            <Option value="hexagon">hexagon (Entity 1)</Option>
-            <Option value="capsule">capsule (Entity 1)</Option>
+            <Option value="pentagon">Pentagon (Entity 1)</Option>
+            <Option value="hexagon">Hexagon (Entity 1)</Option>
+            <Option value="capsule">Capsule (Entity 1)</Option>
           </Select>
         </Col>
         <Col>
@@ -161,9 +179,9 @@ const VisualizePage: React.FC = () => {
             <Option value="circle">Circle (Entity 2)</Option>
             <Option value="square">Square (Entity 2)</Option>
             <Option value="triangle">Triangle (Entity 2)</Option>
-            <Option value="pentagon">pentagon (Entity 2)</Option>
-            <Option value="hexagon">hexagon (Entity 2)</Option>
-            <Option value="capsule">capsule (Entity 2)</Option>
+            <Option value="pentagon">Pentagon (Entity 2)</Option>
+            <Option value="hexagon">Hexagon (Entity 2)</Option>
+            <Option value="capsule">Capsule (Entity 2)</Option>
           </Select>
         </Col>
       </Row>
@@ -172,18 +190,26 @@ const VisualizePage: React.FC = () => {
       ) : (
         <Row gutter={24}>
           <Col span={6}>
-          <Legend
-    nodeColors={nodeColors}
-    linkColors={linkColors}
-    onColorChange={handleColorChange}
-    entity1Shape={entity1Shape}
-    entity2Shape={entity2Shape}
-  />
-          
+            <Legend
+              nodeColors={nodeColors}
+              linkColors={linkColors}
+              onColorChange={handleColorChange}
+              entity1Shape={entity1Shape}
+              entity2Shape={entity2Shape}
+            />
           </Col>
           <Col span={18}>
             <Card title="Graphs" style={{ width: "100%" }}>
+              <Button onClick={handleScreenshot} style={{ marginBottom: 16 }}>
+                Take Screenshot
+              </Button>
+
+              <   ExportChartModal  />
+            <div>
+            </div>
               <ForceGraph2D
+                ref={fgRef}
+                backgroundColor="#ffffff"
                 graphData={graphData}
                 nodeCanvasObject={drawNode}
                 linkColor={(link: any) => linkColors[link.type] || "#999"}
